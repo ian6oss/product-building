@@ -7,6 +7,22 @@
     --background-color: #f0f2f5;
     --text-color: #333;
     --shadow-color: rgba(0, 0, 0, 0.1);
+    --container-background-color: #ffffff;
+    --button-text-color: #ffffff;
+    --toggle-background-color: #e6ecf5;
+    --toggle-text-color: #1f2a37;
+}
+
+body[data-theme='dark'] {
+    --primary-color: #6aa9ff;
+    --secondary-color: #ffb74d;
+    --background-color: #0f172a;
+    --text-color: #e2e8f0;
+    --shadow-color: rgba(0, 0, 0, 0.45);
+    --container-background-color: #1e293b;
+    --button-text-color: #0f172a;
+    --toggle-background-color: #334155;
+    --toggle-text-color: #f8fafc;
 }
 
 body {
@@ -21,15 +37,20 @@ body {
     background-image: url("data:image/svg+xml,%3Csvg width='42' height='44' viewBox='0 0 42 44' xmlns='http://www.w3.org/2000/svg'%3E%3Cg id='Page-1' fill='none' fill-rule='evenodd'%3E%3Cg id='brick-wall' fill='%239C92AC' fill-opacity='0.4'%3E%3Cpath d='M0 0h42v44H0V0zm1 1h40v20H1V1zM0 23h20v20H0V23zm22 0h20v20H22V23z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
+body[data-theme='dark'] {
+    background-image: url("data:image/svg+xml,%3Csvg width='42' height='44' viewBox='0 0 42 44' xmlns='http://www.w3.org/2000/svg'%3E%3Cg id='Page-1' fill='none' fill-rule='evenodd'%3E%3Cg id='brick-wall' fill='%23334155' fill-opacity='0.4'%3E%3Cpath d='M0 0h42v44H0V0zm1 1h40v20H1V1zM0 23h20v20H0V23zm22 0h20v20H22V23z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
 .container {
     text-align: center;
-    background: white;
+    background: var(--container-background-color);
     padding: 2rem 3rem;
     border-radius: 15px;
     box-shadow: 0 10px 30px var(--shadow-color);
     max-width: 500px;
     width: 90%;
     container-type: inline-size;
+    position: relative;
 }
 
 h1 {
@@ -45,7 +66,7 @@ lotto-display {
 
 #generate-btn {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--button-text-color);
     border: none;
     padding: 1rem 2rem;
     font-size: 1.2rem;
@@ -61,6 +82,26 @@ lotto-display {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
+#theme-toggle-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    border: none;
+    border-radius: 999px;
+    background-color: var(--toggle-background-color);
+    color: var(--toggle-text-color);
+    padding: 0.45rem 0.85rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+#theme-toggle-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
 @container (max-width: 400px) {
     h1 {
         font-size: 2rem;
@@ -69,5 +110,11 @@ lotto-display {
     #generate-btn {
         font-size: 1rem;
         padding: 0.8rem 1.5rem;
+    }
+
+    #theme-toggle-btn {
+        top: 12px;
+        right: 12px;
+        font-size: 0.8rem;
     }
 }
