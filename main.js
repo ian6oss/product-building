@@ -82,6 +82,40 @@ document.getElementById('generate-btn').addEventListener('click', () => {
     lottoDisplay.displayNumbers(numbers);
 });
 
+const partnerForm = document.getElementById('partner-form');
+const partnerFormStatus = document.getElementById('partner-form-status');
+const partnerSubmitBtn = document.getElementById('partner-submit-btn');
+
+partnerForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    partnerFormStatus.textContent = 'Sending...';
+    partnerFormStatus.className = '';
+    partnerSubmitBtn.disabled = true;
+
+    try {
+        const response = await fetch(partnerForm.action, {
+            method: 'POST',
+            body: new FormData(partnerForm),
+            headers: {
+                Accept: 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Request failed');
+        }
+
+        partnerForm.reset();
+        partnerFormStatus.textContent = 'Inquiry sent successfully.';
+        partnerFormStatus.className = 'success';
+    } catch (error) {
+        partnerFormStatus.textContent = 'Failed to send inquiry. Please try again.';
+        partnerFormStatus.className = 'error';
+    } finally {
+        partnerSubmitBtn.disabled = false;
+    }
+});
+
 function generateUniqueNumbers() {
     const numbers = new Set();
     while (numbers.size < 6) {

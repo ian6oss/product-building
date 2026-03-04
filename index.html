@@ -13,6 +13,29 @@
         <h1>Lotto Number Generator</h1>
         <lotto-display></lotto-display>
         <button id="generate-btn">Generate Numbers</button>
+        <section class="partner-section" aria-labelledby="partner-title">
+            <h2 id="partner-title">Partnership Inquiry</h2>
+            <form
+                id="partner-form"
+                action="https://formspree.io/f/xvzbvjrd"
+                method="POST"
+            >
+                <label for="partner-name">Name</label>
+                <input id="partner-name" name="name" type="text" required>
+
+                <label for="partner-email">Email</label>
+                <input id="partner-email" name="email" type="email" required>
+
+                <label for="partner-company">Company</label>
+                <input id="partner-company" name="company" type="text" required>
+
+                <label for="partner-message">Message</label>
+                <textarea id="partner-message" name="message" rows="4" required></textarea>
+
+                <button id="partner-submit-btn" type="submit">Send Inquiry</button>
+                <p id="partner-form-status" role="status" aria-live="polite"></p>
+            </form>
+        </section>
     </div>
     <script src="main.js"></script>
 </body>
