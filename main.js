@@ -12,6 +12,9 @@ const photoInput = document.getElementById('photo-input');
 const previewImage = document.getElementById('preview-image');
 const animalResult = document.getElementById('animal-result');
 const confidenceBar = document.getElementById('confidence-bar');
+const partnerForm = document.getElementById('partner-form');
+const partnerSubmitBtn = document.getElementById('partner-submit-btn');
+const partnerFormStatus = document.getElementById('partner-form-status');
 
 startBtn.addEventListener('click', () => {
     if (isModelReady) {
@@ -22,6 +25,11 @@ startBtn.addEventListener('click', () => {
 
 photoInput.addEventListener('change', () => {
     predictFromUpload().catch(handleError);
+});
+
+partnerForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    submitPartnerForm().catch(handlePartnerFormError);
 });
 
 async function init() {
@@ -107,4 +115,33 @@ function handleError(error) {
     startBtn.disabled = false;
     startBtn.textContent = '다시 시도';
     animalResult.textContent = '모델 로딩 또는 이미지 분석에 실패했습니다.';
+}
+
+async function submitPartnerForm() {
+    partnerSubmitBtn.disabled = true;
+    partnerFormStatus.className = '';
+    partnerFormStatus.textContent = '문의 내용을 전송하는 중입니다...';
+
+    const formData = new FormData(partnerForm);
+    const response = await fetch(partnerForm.action, {
+        method: 'POST',
+        body: formData,
+        headers: { Accept: 'application/json' },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Formspree request failed: ${response.status}`);
+    }
+
+    partnerForm.reset();
+    partnerFormStatus.className = 'success';
+    partnerFormStatus.textContent = '제휴 문의가 접수되었습니다. 빠르게 확인 후 회신드리겠습니다.';
+    partnerSubmitBtn.disabled = false;
+}
+
+function handlePartnerFormError(error) {
+    console.error(error);
+    partnerFormStatus.className = 'error';
+    partnerFormStatus.textContent = '전송에 실패했습니다. 잠시 후 다시 시도해주세요.';
+    partnerSubmitBtn.disabled = false;
 }
