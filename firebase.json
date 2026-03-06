@@ -1,0 +1,12 @@
+{
+  "hosting": {
+    "site": "ian-51306692-88592",
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "cleanUrls": true
+  }
+}
