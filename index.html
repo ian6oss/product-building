@@ -1,42 +1,35 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotto Number Generator</title>
+    <title>동물상 테스트</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <button id="theme-toggle-btn" type="button" aria-label="Toggle color theme">Dark Mode</button>
-        <h1>Lotto Number Generator</h1>
-        <lotto-display></lotto-display>
-        <button id="generate-btn">Generate Numbers</button>
-        <section class="partner-section" aria-labelledby="partner-title">
-            <h2 id="partner-title">Partnership Inquiry</h2>
-            <form
-                id="partner-form"
-                action="https://formspree.io/f/xvzbvjrd"
-                method="POST"
-            >
-                <label for="partner-name">Name</label>
-                <input id="partner-name" name="name" type="text" required>
+    <main class="container">
+        <h1>동물상 테스트</h1>
+        <p class="subtitle">사진을 업로드해서 내가 강아지상인지 고양이상인지 확인해보세요.</p>
 
-                <label for="partner-email">Email</label>
-                <input id="partner-email" name="email" type="email" required>
+        <button id="start-btn" type="button">테스트 시작</button>
 
-                <label for="partner-company">Company</label>
-                <input id="partner-company" name="company" type="text" required>
-
-                <label for="partner-message">Message</label>
-                <textarea id="partner-message" name="message" rows="4" required></textarea>
-
-                <button id="partner-submit-btn" type="submit">Send Inquiry</button>
-                <p id="partner-form-status" role="status" aria-live="polite"></p>
-            </form>
+        <section id="test-panel" class="hidden" aria-live="polite">
+            <label for="photo-input" class="upload-label">사진 선택</label>
+            <input id="photo-input" class="photo-input" type="file" accept="image/*">
+            <div id="preview-container" class="preview-container">
+                <img id="preview-image" class="preview-image" alt="업로드한 사진 미리보기">
+            </div>
+            <p id="animal-result" class="animal-result">모델 준비가 끝나면 사진을 올려주세요.</p>
+            <div id="confidence-bar-wrap" class="confidence-bar-wrap">
+                <div id="confidence-bar" class="confidence-bar"></div>
+            </div>
+            <div id="label-container" class="label-container"></div>
         </section>
-    </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

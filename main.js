@@ -1,125 +1,110 @@
 
-class LottoDisplay extends HTMLElement {
-    constructor() {
-        super();
-        this.attachShadow({ mode: 'open' });
-        this.shadowRoot.innerHTML = `
-            <style>
-                .lotto-numbers {
-                    display: flex;
-                    justify-content: center;
-                    gap: 10px;
-                    flex-wrap: wrap;
-                }
-                .number-circle {
-                    width: 50px;
-                    height: 50px;
-                    border-radius: 50%;
-                    background-color: var(--secondary-color, #f5a623);
-                    color: white;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    font-size: 1.5rem;
-                    font-weight: bold;
-                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-                    animation: pop-in 0.5s ease forwards;
-                }
+const MODEL_URL_BASE = 'https://teachablemachine.withgoogle.com/models/1fxBTDvAK/';
 
-                @keyframes pop-in {
-                    0% {
-                        transform: scale(0);
-                        opacity: 0;
-                    }
-                    100% {
-                        transform: scale(1);
-                        opacity: 1;
-                    }
-                }
-            </style>
-            <div class="lotto-numbers">
-                <p>Click the button to generate numbers!</p>
-            </div>
-        `;
+let model;
+let labelContainer;
+let maxPredictions = 0;
+let isModelReady = false;
+
+const startBtn = document.getElementById('start-btn');
+const testPanel = document.getElementById('test-panel');
+const photoInput = document.getElementById('photo-input');
+const previewImage = document.getElementById('preview-image');
+const animalResult = document.getElementById('animal-result');
+const confidenceBar = document.getElementById('confidence-bar');
+
+startBtn.addEventListener('click', () => {
+    if (isModelReady) {
+        return;
     }
-
-    displayNumbers(numbers) {
-        const container = this.shadowRoot.querySelector('.lotto-numbers');
-        container.innerHTML = '';
-        numbers.forEach((number, index) => {
-            const circle = document.createElement('div');
-            circle.classList.add('number-circle');
-            circle.textContent = number;
-            circle.style.animationDelay = `${index * 0.1}s`;
-            container.appendChild(circle);
-        });
-    }
-}
-
-customElements.define('lotto-display', LottoDisplay);
-
-const THEME_STORAGE_KEY = 'theme';
-const themeToggleBtn = document.getElementById('theme-toggle-btn');
-
-function applyTheme(theme) {
-    document.body.setAttribute('data-theme', theme);
-    themeToggleBtn.textContent = theme === 'dark' ? 'White Mode' : 'Dark Mode';
-}
-
-const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
-
-themeToggleBtn.addEventListener('click', () => {
-    const currentTheme = document.body.getAttribute('data-theme') || 'light';
-    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    applyTheme(nextTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    init().catch(handleError);
 });
 
-document.getElementById('generate-btn').addEventListener('click', () => {
-    const lottoDisplay = document.querySelector('lotto-display');
-    const numbers = generateUniqueNumbers();
-    lottoDisplay.displayNumbers(numbers);
+photoInput.addEventListener('change', () => {
+    predictFromUpload().catch(handleError);
 });
 
-const partnerForm = document.getElementById('partner-form');
-const partnerFormStatus = document.getElementById('partner-form-status');
-const partnerSubmitBtn = document.getElementById('partner-submit-btn');
+async function init() {
+    startBtn.disabled = true;
+    startBtn.textContent = '모델 준비 중...';
 
-partnerForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    partnerFormStatus.textContent = 'Sending...';
-    partnerFormStatus.className = '';
-    partnerSubmitBtn.disabled = true;
+    const modelURL = `${MODEL_URL_BASE}model.json`;
+    const metadataURL = `${MODEL_URL_BASE}metadata.json`;
+    model = await tmImage.load(modelURL, metadataURL);
+    maxPredictions = model.getTotalClasses();
+    isModelReady = true;
 
+    testPanel.classList.remove('hidden');
+    photoInput.value = '';
+    previewImage.removeAttribute('src');
+
+    labelContainer = document.getElementById('label-container');
+    labelContainer.innerHTML = '';
+    for (let i = 0; i < maxPredictions; i += 1) {
+        labelContainer.appendChild(document.createElement('div'));
+    }
+
+    startBtn.textContent = '준비 완료';
+    animalResult.textContent = '사진을 업로드하면 바로 분석합니다.';
+}
+
+async function predictFromUpload() {
+    if (!isModelReady) {
+        return;
+    }
+
+    const file = photoInput.files && photoInput.files[0];
+    if (!file) {
+        return;
+    }
+
+    animalResult.textContent = '사진 분석 중...';
+    const objectUrl = URL.createObjectURL(file);
     try {
-        const response = await fetch(partnerForm.action, {
-            method: 'POST',
-            body: new FormData(partnerForm),
-            headers: {
-                Accept: 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error('Request failed');
-        }
-
-        partnerForm.reset();
-        partnerFormStatus.textContent = 'Inquiry sent successfully.';
-        partnerFormStatus.className = 'success';
-    } catch (error) {
-        partnerFormStatus.textContent = 'Failed to send inquiry. Please try again.';
-        partnerFormStatus.className = 'error';
+        await loadPreviewImage(objectUrl);
+        await predict(previewImage);
     } finally {
-        partnerSubmitBtn.disabled = false;
+        URL.revokeObjectURL(objectUrl);
     }
-});
+}
 
-function generateUniqueNumbers() {
-    const numbers = new Set();
-    while (numbers.size < 6) {
-        numbers.add(Math.floor(Math.random() * 45) + 1);
+async function loadPreviewImage(src) {
+    await new Promise((resolve, reject) => {
+        previewImage.onload = resolve;
+        previewImage.onerror = reject;
+        previewImage.src = src;
+    });
+}
+
+async function predict(imageElement) {
+    const prediction = await model.predict(imageElement);
+    const topPrediction = prediction.reduce((best, current) => (
+        current.probability > best.probability ? current : best
+    ));
+
+    const percentage = Math.round(topPrediction.probability * 100);
+    animalResult.textContent = formatResultMessage(topPrediction.className, percentage);
+    confidenceBar.style.width = `${percentage}%`;
+
+    for (let i = 0; i < maxPredictions; i += 1) {
+        const current = prediction[i];
+        labelContainer.childNodes[i].textContent = `${current.className}: ${(current.probability * 100).toFixed(1)}%`;
     }
-    return Array.from(numbers).sort((a, b) => a - b);
+}
+
+function formatResultMessage(className, percentage) {
+    if (className.includes('dog') || className.includes('강아지')) {
+        return `당신은 ${percentage}% 확률로 강아지상입니다.`;
+    }
+    if (className.includes('cat') || className.includes('고양이')) {
+        return `당신은 ${percentage}% 확률로 고양이상입니다.`;
+    }
+    return `가장 가까운 동물상은 ${className} (${percentage}%)`;
+}
+
+function handleError(error) {
+    console.error(error);
+    startBtn.disabled = false;
+    startBtn.textContent = '다시 시도';
+    animalResult.textContent = '모델 로딩 또는 이미지 분석에 실패했습니다.';
 }
